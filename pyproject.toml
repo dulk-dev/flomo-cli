@@ -1,0 +1,26 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "flomo-cli"
+version = "0.1.0"
+description = "Flomo CLI — reverse-engineered Flomo API client for Agents and humans"
+requires-python = ">=3.10"
+dependencies = [
+    "click>=8.1",
+    "httpx>=0.27",
+    "rich>=13.0",
+]
+
+[project.scripts]
+flomo = "flomo_cli.cli:cli"
+
+[tool.hatch.build.targets.wheel]
+packages = ["flomo_cli"]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.0",
+    "pytest-mock>=3.12",
+]
