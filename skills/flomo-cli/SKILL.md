@@ -1,12 +1,6 @@
 ---
 name: flomo-cli
-description: >
-  Flomo 笔记命令行工具使用指南。当需要与 Flomo 笔记交互时使用：
-  创建/编辑/删除笔记、搜索笔记、查看标签、查看相关笔记、管理认证。
-  适用场景：(1) 记录想法/灵感到 Flomo, (2) 搜索和检索已有笔记,
-  (3) 基于笔记内容做分析或总结, (4) 批量操作笔记,
-  (5) 任何涉及 flomo 关键词的笔记管理需求。
-  触发关键词：flomo、笔记、memo、记录想法、写笔记、查笔记。
+description: Flomo 笔记命令行工具。当需要与 Flomo 交互时使用，包括创建/编辑/删除/搜索笔记、查看标签和相关笔记、每日回顾、管理认证。触发词：flomo、笔记、memo、记录想法、写笔记、查笔记、每日回顾。
 ---
 
 # flomo-cli 使用指南
@@ -69,6 +63,9 @@ uv run flomo related <slug> --json
 
 # 标签列表
 uv run flomo tags --json
+
+# 每日回顾（获取今日推荐回顾的笔记列表）
+uv run flomo review --json
 ```
 
 ### 认证管理
@@ -115,34 +112,41 @@ uv run flomo status --json
   "tags": ["标签1", "开发/子标签"],
   "created_at": "2026-03-17 10:30:00",
   "updated_at": "2026-03-17 10:30:00",
-  "files": [{"id": "...", "type": "image", "name": "...", "url": "..."}]
+  "deleted_at": null,
+  "files": [{"id": 123, "type": "image", "name": "photo.jpg", "size": 270391, "url": "https://...", "thumbnail_url": "https://..."}]
 }
 ```
 
 - `slug` 是笔记的唯一标识，用于 get/edit/delete/related 操作
 - `tags` 支持多级标签，如 `开发/flomo-cli`
 - `content` 是 HTML 格式，`content_text` 是剥离 HTML 后的纯文本
+- `deleted_at` 为 null 表示正常笔记，默认已过滤软删除笔记
+- `files` 包含附件完整信息（URL 可直接下载）
 
 ## 典型工作流
 
 ```bash
-# 1. 搜索相关笔记
+# 1. 查看今日回顾推荐
+uv run flomo review --json
+
+# 2. 搜索相关笔记
 result=$(uv run flomo search "项目进展" --json)
 
-# 2. 从结果中取出某条笔记的 slug，查看详情
+# 3. 从结果中取出某条笔记的 slug，查看详情
 uv run flomo get MTA1MDM5OTgy --json
 
-# 3. 查看语义相关笔记
+# 4. 查看语义相关笔记
 uv run flomo related MTA1MDM5OTgy --json
 
-# 4. 创建新笔记
+# 5. 创建新笔记
 uv run flomo new "基于分析得出结论：... #insight" --json
 ```
 
 ## 注意事项
 
-- 搜索功能通过拉取全量笔记后本地匹配实现，笔记量大时较慢
-- 创建/编辑笔记时内容自动转换为 HTML（纯文本包裹在 `<p>` 标签中）
-- 删除是软删除（移入回收站）
-- 分页机制基于 cursor（`latest_slug` + `latest_updated_at`），list 命令 `has_more=true` 时表示还有更多
-- 工作目录：所有命令需在 flomo-cli 项目根目录下通过 `uv run flomo` 执行
+- 搜索通过拉取全量笔记后本地匹配实现，笔记量大时较慢
+- 创建/编辑时纯文本自动包裹 `<p>` 标签转为 HTML
+- 删除是软删除（移入回收站），默认已过滤软删除笔记
+- list 返回 `has_more=true` 时表示还有更多，可调 `--limit` 获取更多
+- review 返回的是 Flomo 推荐的今日回顾笔记，可能包含较早的历史笔记
+- 所有命令需在 flomo-cli 项目根目录下通过 `uv run flomo` 执行
