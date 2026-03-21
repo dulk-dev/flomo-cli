@@ -86,6 +86,12 @@ flomo --token "your-access-token" list --json
 | `flomo tags` | 查看标签列表 |
 | `flomo review` | 每日回顾（今日推荐的历史笔记） |
 
+### 标签管理
+
+| 命令 | 说明 |
+|------|------|
+| `flomo tag rename <旧标签> <新标签>` | 重命名标签（服务端原子操作，同时更新所有关联笔记） |
+
 所有命令均支持 `--json` 标志输出结构化 JSON。
 
 ## 使用示例
@@ -158,6 +164,26 @@ $ flomo review
 │ 那些看起来有强大自控能力的人并非真的比常人更…  │
 ╰──────────────────────────────────────────────╯
 ...
+```
+
+### 重命名标签
+
+服务端原子操作，自动更新所有包含该标签的笔记：
+
+```bash
+# 基础用法
+$ flomo tag rename 旧标签 新标签
+✓ 标签已重命名：#旧标签 → #新标签（影响 5 条笔记）
+
+# 层级标签
+$ flomo tag rename "读书/认知觉醒" "读书/认知驱动"
+
+# 前缀 # 会自动去除
+$ flomo tag rename "#work" "#job"
+
+# JSON 输出（Agent 场景）
+$ flomo tag rename old new --json
+{"ok": true, "data": {"old_tag": "old", "new_tag": "new", "updated_num": 5}}
 ```
 
 ## Agent 集成
@@ -244,6 +270,7 @@ flomo_cli/
 └── commands/
     ├── _common.py         # handle_command 模式（统一认证/输出/错误）
     ├── auth.py            # login / logout / status
+    ├── tag.py             # tag rename
     └── memo.py            # list / get / new / edit / delete / search / related / tags / review
 ```
 
@@ -266,8 +293,8 @@ uv run pytest tests/test_signing.py -v
 |---------|---------|
 | `test_signing.py` | MD5 签名算法（含已知正确值对照） |
 | `test_auth.py` | Token 优先级链、缓存读写、HTML 剥离、错误码映射 |
-| `test_client.py` | HTTP 响应处理、全部 client 方法（mock） |
-| `test_commands.py` | CLI 命令端到端（CliRunner + mock） |
+| `test_client.py` | HTTP 响应处理、全部 client 方法含 rename_tag（mock） |
+| `test_commands.py` | CLI 命令端到端含 tag rename（CliRunner + mock） |
 
 ## 技术细节
 

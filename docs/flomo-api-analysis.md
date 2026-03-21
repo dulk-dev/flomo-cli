@@ -197,10 +197,17 @@ headers = {
 
 ### 标签（Tag）相关
 
-| 端点 | 方法 | 用途 |
-|------|------|------|
-| `/tag/updated/` | GET | 分页获取标签列表 |
-| `/tag/tree` | GET | 获取标签树结构 |
+| 端点 | 方法 | 用途 | 已验证 |
+|------|------|------|--------|
+| `/tag/updated/` | GET | 分页获取标签列表 | |
+| `/tag/tree` | GET | 获取标签树结构 | ✅ |
+| `/tag/tree` | POST | 保存标签排序（body: `{tag_tree: [...]}`） | |
+| `/tag/rename` | POST | 重命名标签（原子操作，同步更新所有笔记） | ✅ |
+| `/tag/pin` | POST | 置顶标签（body: `{tag, tz}`） | |
+| `/tag/unpin` | POST | 取消标签置顶（body: `{tag, tz}`） | |
+| `/tag/icon` | POST | 设置标签图标/Emoji（PRO 功能） | |
+| `/tag/{tag_id}` | PUT | 更新标签（重命名/排序） | |
+| `/tag/memo/delete` | PUT | 删除标签及其下所有笔记 | |
 
 ### 其他
 

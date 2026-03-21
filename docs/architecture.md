@@ -47,7 +47,8 @@ flomo-cli/
 │   │   ├── __init__.py
 │   │   ├── _common.py          # 命令公共逻辑（认证、输出格式、错误处理）
 │   │   ├── auth.py             # login / logout / status / whoami
-│   │   └── memo.py             # list / get / new / edit / delete / search / related
+│   │   ├── memo.py             # list / get / new / edit / delete / search / related
+│   │   └── tag.py              # tag rename
 │   ├── client.py               # API 客户端（传输层 + 签名 + 重试）
 │   ├── auth.py                 # 认证管理（Token 获取、缓存、刷新）
 │   ├── constants.py            # 常量（Host、API key、secret、配置路径）
@@ -102,6 +103,12 @@ flomo-cli/
 | `flomo search "关键词"` | 搜索笔记（实时拉取全量 + 内存过滤） | `GET /memo/updated/`（分页遍历全量） |
 | `flomo related <slug>` | 查看相关笔记 | `GET /memo/{slug}/recommended` |
 | `flomo tags` | 查看标签树 | `GET /tag/tree` |
+
+### `commands/tag.py` — 标签管理命令
+
+| 命令 | 用途 | 对应 API |
+|------|------|---------|
+| `flomo tag rename <old> <new>` | 重命名标签（服务端原子操作） | `POST /tag/rename` |
 
 ### `commands/_common.py` — 命令公共层
 
@@ -160,6 +167,7 @@ class FlomoClient:
     def delete_memo(self, slug: str) -> dict
     def get_related_memos(self, slug: str) -> list[dict]
     def get_tag_tree(self) -> dict
+    def rename_tag(self, old_tag: str, new_tag: str) -> dict
     def login(self, email: str, password: str) -> dict
 ```
 
