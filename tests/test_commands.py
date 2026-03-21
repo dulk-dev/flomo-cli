@@ -14,7 +14,7 @@ def _runner():
     return CliRunner()
 
 
-def _make_client(memos=None, memo=None, related=None, tags=None, memos_ascending=None, daily_review=None):
+def _make_client(memos=None, memo=None, related=None, tags=None, memos_ascending=None, daily_review=None, rename_tag=None):
     """Return a mock FlomoClient."""
     m = MagicMock()
     m.__enter__ = MagicMock(return_value=m)
@@ -29,6 +29,7 @@ def _make_client(memos=None, memo=None, related=None, tags=None, memos_ascending
     m.create_memo.return_value = {"slug": "new", "content": "<p>x</p>", "tags": []}
     m.update_memo.return_value = {"slug": "abc", "content": "<p>y</p>", "tags": []}
     m.delete_memo.return_value = ""
+    m.rename_tag.return_value = rename_tag or {"updated_num": 0}
     return m
 
 
@@ -263,6 +264,77 @@ class TestMemoCommands:
         result = _runner().invoke(cli, self._with_token(["review"]))
         assert result.exit_code == 0, result.output
         assert "每日回顾" in result.output or "Some review content" in result.output
+
+
+# ─── Tag commands ────────────────────────────────────────────────────────────
+
+
+class TestTagCommands:
+    def _with_token(self, args):
+        return ["--token", "fake-token"] + args
+
+    @patch("flomo_cli.commands._common.FlomoClient")
+    def test_rename_json(self, MockClient):
+        MockClient.return_value = _make_client(rename_tag={"updated_num": 5})
+        result = _runner().invoke(cli, self._with_token(["tag", "rename", "old", "new", "--json"]))
+        assert result.exit_code == 0, result.output
+        data = json.loads(result.output)
+        assert data["ok"] is True
+        assert data["data"]["old_tag"] == "old"
+        assert data["data"]["new_tag"] == "new"
+        assert data["data"]["updated_num"] == 5
+
+    @patch("flomo_cli.commands._common.FlomoClient")
+    def test_rename_rich_output(self, MockClient):
+        MockClient.return_value = _make_client(rename_tag={"updated_num": 3})
+        result = _runner().invoke(cli, self._with_token(["tag", "rename", "旧标签", "新标签"]))
+        assert result.exit_code == 0, result.output
+        assert "旧标签" in result.output
+        assert "新标签" in result.output
+
+    @patch("flomo_cli.commands._common.FlomoClient")
+    def test_rename_strips_hash_prefix(self, MockClient):
+        mock = _make_client(rename_tag={"updated_num": 2})
+        MockClient.return_value = mock
+        result = _runner().invoke(cli, self._with_token(["tag", "rename", "#work", "#job", "--json"]))
+        assert result.exit_code == 0, result.output
+        mock.rename_tag.assert_called_once_with("work", "job")
+        data = json.loads(result.output)
+        assert data["data"]["old_tag"] == "work"
+        assert data["data"]["new_tag"] == "job"
+
+    def test_rename_same_name_rejected(self):
+        result = _runner().invoke(cli, ["--token", "t", "tag", "rename", "same", "same"])
+        assert result.exit_code != 0
+        assert "相同" in result.output
+
+    def test_rename_empty_name_rejected(self):
+        result = _runner().invoke(cli, ["--token", "t", "tag", "rename", "#", "new"])
+        assert result.exit_code != 0
+        assert "为空" in result.output
+
+    @patch("flomo_cli.commands._common.FlomoClient")
+    def test_rename_hierarchical_tag(self, MockClient):
+        MockClient.return_value = _make_client(rename_tag={"updated_num": 10})
+        result = _runner().invoke(
+            cli, self._with_token(["tag", "rename", "读书/认知觉醒", "读书/认知驱动", "--json"])
+        )
+        assert result.exit_code == 0, result.output
+        data = json.loads(result.output)
+        assert data["data"]["old_tag"] == "读书/认知觉醒"
+        assert data["data"]["new_tag"] == "读书/认知驱动"
+        assert data["data"]["updated_num"] == 10
+
+    @patch("flomo_cli.commands._common.FlomoClient")
+    def test_rename_api_error_json(self, MockClient):
+        mock = _make_client()
+        mock.rename_tag.side_effect = FlomoApiError("标签不存在")
+        MockClient.return_value = mock
+        result = _runner().invoke(cli, self._with_token(["tag", "rename", "a", "b", "--json"]))
+        assert result.exit_code == 1
+        data = json.loads(result.output)
+        assert data["ok"] is False
+        assert data["error"] == "api_error"
 
 
 # ─── Error handling ──────────────────────────────────────────────────────────

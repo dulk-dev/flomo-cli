@@ -209,6 +209,12 @@ class TestFlomoClientMethods:
             result = self.client.get_daily_review()
         assert result == []
 
+    def test_rename_tag(self):
+        result = {"updated_num": 3}
+        with self._patch_get(result):
+            data = self.client.rename_tag("old_tag", "new_tag")
+        assert data == {"updated_num": 3}
+
     def test_request_does_not_retry_api_error(self):
         with (
             patch.object(

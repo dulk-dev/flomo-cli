@@ -401,3 +401,11 @@ class FlomoClient:
     def get_tag_tree(self) -> Any:
         """Return the tag tree structure."""
         return self._get("tag/tree")
+
+    def rename_tag(self, old_tag: str, new_tag: str) -> dict[str, Any]:
+        """Rename a tag across all memos (server-side atomic operation).
+
+        Returns ``{"updated_num": N}`` where *N* is the number of memos
+        whose content was rewritten by the server.
+        """
+        return self._post("tag/rename", {"old_tag": old_tag, "new_tag": new_tag})

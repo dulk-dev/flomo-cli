@@ -8,6 +8,7 @@ import click
 
 from . import __version__
 from .commands import auth, memo
+from .commands import tag as tag_mod
 
 
 @click.group()
@@ -41,6 +42,16 @@ cli.add_command(memo.search)
 cli.add_command(memo.related)
 cli.add_command(memo.tags)
 cli.add_command(memo.review)
+
+# ─── Tag commands ──────────────────────────────────────────────────────────
+
+
+@cli.group("tag")
+def tag_group() -> None:
+    """Manage tags (rename, etc.)."""
+
+
+tag_group.add_command(tag_mod.rename)
 
 if __name__ == "__main__":
     cli()
