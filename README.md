@@ -1,5 +1,7 @@
 # flomo-cli
 
+> **提示：** 给 Agent 接 flomo，现在有更新、能力也更完整的开源工具 [Flomo MCP](https://github.com/dulk-dev/flomo-mcp)（本地 stdio MCP，`npx @dulk-dev/flomo-mcp`）。它覆盖笔记、搜索、标签、洞察等 22 个工具，适合 Cursor、Claude Desktop 这类集成。人在终端里操作，继续用本 CLI。
+
 通过逆向 Flomo Web API 实现的命令行工具，同时面向**人类**和 **AI Agent** 两种使用场景。
 
 - 人类使用：Rich 彩色表格输出，交互式确认
